@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор марки и модели</title>
+    <!-- Подключение Bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Стили для анимации загрузки */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container mt-5">
+        {% if no_data %}
+            <h1>Данных нет</h1>
+            <form method="post" action="{% url 'update_autoru_catalog' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Загрузить данные</button>
+            </form>
+        {% else %}
+            {% if marks %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>Выберите марку автомобиля</h1>
+                    <!-- Кнопка для обновления базы данных -->
+                    <form method="post" action="{% url 'update_autoru_catalog' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary" onclick="showLoader()">Обновить базу данных</button>
+                    </form>
+                    {% if last_update %}
+                        <p>Последнее обновление: {{ last_update.updated_at }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Форма для выбора марки -->
+                <form method="post" action="{% url 'home' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="selected_mark">Марка:</label>
+                        <select class="form-control" id="selected_mark" name="selected_mark">
+                            {% for mark in marks %}
+                                <option value="{{ mark.name }}">{{ mark.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Выбрать</button>
+                </form>
+
+                <!-- Отображение моделей выбранной марки -->
+                {% if models %}
+                    <h2 class="mt-5">Модели выбранной марки:</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Наименование</th>
+                                    <th scope="col">id модификации</th>
+                                    <th scope="col">Название модификации</th>
+                                    <th scope="col">Годы производства</th>
+                                    <!-- Добавлен столбец для года выпуска -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in models %}
+                                    <tr>
+                                        <td>{{ model.name }}</td>
+                                        <td>{{ model.generation }}</td>
+                                        <td>{{ model.modification_name }}</td>
+                                        <td>{{ model.years }}</td>
+                                        <!-- Добавь остальные данные модели здесь -->
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Подключение скриптов Bootstrap и JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Функция для отображения анимации загрузки при отправке формы
+        function showLoader() {
+            document.getElementById('loader').classList.remove('d-none'); // Показать анимацию загрузки
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('d-none'); // Скрыть анимацию загрузки после 3 секунд
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
