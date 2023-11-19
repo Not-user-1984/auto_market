@@ -27,46 +27,45 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-
 </head>
-
 <body>
     <div class="container mt-5">
         {% if no_data %}
             <h1>Данных нет</h1>
             <form method="post" action="{% url 'update_autoru_catalog' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Загрузить данные</button>
+                <button type="submit" class="btn btn-primary" onclick="showLoader()">Загрузить данные</button>
             </form>
         {% else %}
             {% if marks %}
                 <div class="d-flex justify-content-between align-items-center">
-                    <h1>Выберите марку автомобиля</h1>
+                    <h2>Выберите марку автомобиля</h2>
+                    <!-- Кнопка для удаления базы данных -->
+                    <form method="post" action="{% url 'delete_autoru_catalog' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="showLoader()">Удалить базу данных</button>
+                    </form>
                     <!-- Кнопка для обновления базы данных -->
                     <form method="post" action="{% url 'update_autoru_catalog' %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary" onclick="showLoader()">Обновить базу данных</button>
                     </form>
-                    {% if last_update %}
-                        <p>Последнее обновление: {{ last_update.updated_at }}</p>
-                    {% endif %}
                 </div>
 
-                <!-- Форма для выбора марки -->
                 <form method="post" action="{% url 'home' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="selected_mark">Марка:</label>
                         <select class="form-control" id="selected_mark" name="selected_mark">
                             {% for mark in marks %}
-                                <option value="{{ mark.name }}">{{ mark.name }}</option>
+                                <option value="{{ mark.name }}" {% if selected_mark == mark.name %}selected{% endif %}>{{ mark.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Выбрать</button>
+                    <button type="submit" class="btn btn-primary" onclick="showLoader()">Выбрать</button>
                 </form>
 
-                <!-- Отображение моделей выбранной марки -->
+                <!-- Отображение моделей выбранной марки с пагинацией -->
                 {% if models %}
                     <h2 class="mt-5">Модели выбранной марки:</h2>
                     <div class="table-responsive">
@@ -77,7 +76,6 @@
                                     <th scope="col">id модификации</th>
                                     <th scope="col">Название модификации</th>
                                     <th scope="col">Годы производства</th>
-                                    <!-- Добавлен столбец для года выпуска -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,29 +85,59 @@
                                         <td>{{ model.generation }}</td>
                                         <td>{{ model.modification_name }}</td>
                                         <td>{{ model.years }}</td>
-                                        <!-- Добавь остальные данные модели здесь -->
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    <!-- Пагинация -->
+                    {% if models.has_other_pages %}
+                        <nav aria-label="...">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if not models.has_previous %}disabled{% endif %}">
+                                    {% if models.has_previous %}
+                                        <a class="page-link" href="?page=1{% if selected_mark %}&selected_mark={{ selected_mark }}{% endif %}">&lt;</a>
+                                    {% endif %}
+                                </li>
+                                {% for p in models.paginator.page_range %}
+                                    {% if models.number == p %}
+                                        <li class="page-item active" aria-current="page">
+                                            <a class="page-link" href="?page={{ p }}{% if selected_mark %}&selected_mark={{ selected_mark }}{% endif %}">{{ p }}</a>
+                                        </li>
+                                    {% elif p >= models.number|add:-2 and p <= models.number|add:2 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ p }}{% if selected_mark %}&selected_mark={{ selected_mark }}{% endif %}">{{ p }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                <li class="page-item {% if not models.has_next %}disabled{% endif %}">
+                                    {% if models.has_next %}
+                                        <a class="page-link" href="?page={{ models.paginator.num_pages }}{% if selected_mark %}&selected_mark={{ selected_mark }}{% endif %}">&gt;</a>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}
     </div>
 
-    <!-- Подключение скриптов Bootstrap и JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Анимация загрузки -->
+    <div id="loader" class="loader"></div>
+
+    <!-- Подключение скриптов  JS -->
     <script>
         // Функция для отображения анимации загрузки при отправке формы
         function showLoader() {
-            document.getElementById('loader').classList.remove('d-none'); // Показать анимацию загрузки
-            setTimeout(function() {
-                document.getElementById('loader').classList.add('d-none'); // Скрыть анимацию загрузки после 3 секунд
+            document.getElementById('loader').style.display = 'block'; // Показать анимацию загрузки
+            setTimeout(function () {
+                document.getElementById('loader').style.display = 'none'; // Скрыть анимацию загрузки после 3 секунд
             }, 3000);
         }
     </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
