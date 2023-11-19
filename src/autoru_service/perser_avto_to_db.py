@@ -13,8 +13,6 @@ def parse_xml_file(file_path=None):
         for mark_tag in soup.find_all('mark'):
             mark_name = mark_tag.get('name')
             mark_code = mark_tag.find('code').text
-
-            # Создаем или получаем объект Mark
             mark, created = Mark.objects.get_or_create(name=mark_name, defaults={'code': mark_code})
 
             for folder_tag in mark_tag.find_all('folder'):

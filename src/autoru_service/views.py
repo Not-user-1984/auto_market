@@ -8,6 +8,12 @@ from autoru_service.perser_avto_to_db import parse_xml_file
 
 
 def update_autoru_catalog(request):
+    """
+    Обновляет каталог автомобилей
+    Удаляет все объекты Mark и Model из базы данных,
+    затем запускает парсер, который загружает новые данные
+    из XML файла с каталогом автомобилей Auto.ru в базу данных.
+    """
     Mark.objects.all().delete()
     Model.objects.all().delete()
     parse_xml_file()
@@ -15,12 +21,20 @@ def update_autoru_catalog(request):
 
 
 def delete_autoru_catalog(request):
+    """
+    Удаляет все объекты Mark и Model из базы данных.
+    """
     Mark.objects.all().delete()
     Model.objects.all().delete()
     return redirect('home')
 
 
 def paginate_models(request, models):
+    """
+    Обрабатывает пагинацию моделей.
+    Использует Django Paginator для разбиения списка моделей
+    на страницы по 10 моделей на странице.
+    """
     paginator = Paginator(models, 10)
     page_number = request.GET.get('page')
     try:
@@ -32,8 +46,13 @@ def paginate_models(request, models):
     return paginated_models
 
 
-
 def home(request):
+    """
+    Отображает домашнюю страницу.
+    Если в базе нет данных, отображает сообщение о их отсутствии.
+    Если данные есть, позволяет выбрать марку автомобиля
+    и отображает список моделей выбранной марки с пагинацией.
+    """
     all_marks = Mark.objects.all()
     selected_mark = request.GET.get('selected_mark')
 

@@ -3,8 +3,6 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_URL = '/static/'
-
 SECRET_KEY = 'django-insecure-wwv5-&l@@lclz0c+hmv$pwsxcmi-yun+6_%x^_knpuqy+mp+47'
 
 DEBUG = True
